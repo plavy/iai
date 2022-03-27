@@ -17,11 +17,13 @@ class Node:
 
 opened = []
 closed = []
+visited_states = []
 
 
 def main(argv):
     global opened
     global closed
+    global visited_states
     algorithm = ''
     state_descriptor = ''
     heuristic_descriptor = ''
@@ -91,6 +93,7 @@ def main(argv):
         for state in sorted(h):
             opened = []
             closed = []
+            visited_states = []
             predicted_cost = float(h[state])
             n = ucs(state, succ, goal)
             if n:
@@ -159,26 +162,36 @@ def read_heuristic_descriptor(file):
 def bfs(init, succ, goal):
     global opened
     global closed
+    global visited_states
     opened.append(Node(None, init, 0))
     while len(opened) > 0:
         n = opened.pop(0)
         closed.append(n)
+        visited_states.append(n.state)
         if n.state in goal:
             return n
-        opened = opened + sorted(n.expand(succ), key=lambda el: el.state)
+        children = []
+        for child in n.expand(succ):
+            if child.state not in visited_states:
+                children.append(child)
+        opened = opened + sorted(children, key=lambda el: el.state)
     return None
 
 
 def ucs(init, succ, goal):
     global opened
     global closed
+    global visited_states
     opened.append(Node(None, init, 0))
     while len(opened) > 0:
         n = opened.pop(0)
         closed.append(n)
+        visited_states.append(n.state)
         if n.state in goal:
             return n
-        opened = opened + n.expand(succ)
+        for child in n.expand(succ):
+            if child.state not in visited_states:
+                opened.append(child)
         opened.sort(key=lambda el: (el.cost, el.state))
     return None
 
