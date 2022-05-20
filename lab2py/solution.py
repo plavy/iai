@@ -199,10 +199,10 @@ def refutation_resolution(premises, goals, deductions):
                         return True
                     else:
                         deduced.add(resolved_clause)
-                        #print("Resolved:", resolved_clause, "from", clausei, clausej)
         if deduced.issubset(premises.union(goals)):
             return False
         goals = goals.union(deduced)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
