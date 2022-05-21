@@ -103,26 +103,29 @@ class ID3:
         for el in self.print_lines:
             print(el)
 
-    def predict_single(self, node, example):
+    def predict_single(self, node, example, train_dataset, label):
         if node.label_value:
             return node.label_value
         for el in node.subtrees:
             if example[node.feature] == el[0]:
-                return self.predict_single(el[1], example)
+                return self.predict_single(el[1], example, dataset_filter(train_dataset, node.feature, el[0]), label)
+        # value doesn't exist in train dataset
+        m = most_frequent_value(train_dataset, label)
+        return m
 
-    def predict(self, dataset, features, label):
+    def predict(self, train_dataset, test_dataset, features, label):
         correct = 0
-        matrix = [[0 for i in range(len(values_of(dataset, label)))] for j in range(len(values_of(dataset, label)))]
+        matrix = [[0 for i in range(len(values_of(test_dataset, label)))] for j in range(len(values_of(test_dataset, label)))]
         print("[PREDICTIONS]:", end=' ')
-        for el in dataset:
+        for el in test_dataset:
             actual = el[label]
-            prediction = self.predict_single(self.root_node, el)
-            matrix[sorted(values_of(dataset, label)).index(actual)][sorted(values_of(dataset, label)).index(prediction)] += 1
+            prediction = self.predict_single(self.root_node, el, train_dataset, label)
+            matrix[sorted(values_of(test_dataset, label)).index(actual)][sorted(values_of(test_dataset, label)).index(prediction)] += 1
             print(prediction, end=' ')
             if actual == prediction:
                 correct += 1
         print()
-        print('[ACCURACY]: %.5f' % round(correct / len(dataset), 5))
+        print('[ACCURACY]: %.5f' % round(correct / len(test_dataset), 5))
         print("[CONFUSION_MATRIX]:")
         for i in matrix:
             for j in i:
@@ -160,11 +163,11 @@ def main(argv):
         sys.exit(2)
     train_file = argv[0]
     test_file = argv[1]
-    dataset, features, label = read_dataset_file(train_file)
+    train_dataset, features, label = read_dataset_file(train_file)
     model = ID3()
-    model.fit(dataset, dataset, features, label)
-    dataset, features, label = read_dataset_file(test_file)
-    model.predict(dataset, features, label)
+    model.fit(train_dataset, train_dataset, features, label)
+    test_dataset, features, label = read_dataset_file(test_file)
+    model.predict(train_dataset, test_dataset, features, label)
 
 
 if __name__ == "__main__":
